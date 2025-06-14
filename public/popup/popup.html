@@ -1,0 +1,161 @@
+<!doctype html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="/third_party/bulma/bulma.min.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="/third_party/bulma/bulma-switch.min.css"
+    />
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="/third_party/bulma/bulma-divider.min.css"
+    />
+    <script src="/popup/popup.js"></script>
+    <title></title>
+    <style>
+      html {
+        width: 332px;
+      }
+      hr {
+        margin: 1rem 0;
+      }
+
+      .grid-container {
+        display: grid;
+        grid-template-columns: 75px 65px 85px 75px;
+        grid-template-rows: auto;
+        grid-template-areas:
+          "header header header header"
+          "main main main sidebar"
+          "left left right right"
+          ". center center .";
+      }
+      .grid-header {
+        grid-area: header;
+        display: flex;
+
+        justify-content: center;
+        align-content: center;
+      }
+      .grid-main {
+        grid-area: main;
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        flex-direction: column;
+      }
+      .grid-sidebar {
+        grid-area: sidebar;
+      }
+      .grid-center {
+        grid-area: center;
+      }
+      .grid-left {
+        grid-area: left;
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        flex-direction: column;
+      }
+      .grid-right {
+        grid-area: right;
+      }
+
+      .img_round {
+        border-radius: 10px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container p-4">
+      <div class="grid-container">
+        <div class="grid-header">
+          <p class="title">
+            <img class="img_round" src="/icon/LogoFluentTyperYellow.png" />
+          </p>
+        </div>
+      </div>
+
+      <hr />
+
+      <div class="grid-container">
+        <div class="grid-main">Global toggle</div>
+
+        <div class="grid-sidebar">
+          <div class="field">
+            <input
+              id="checkboxEnableInput"
+              type="checkbox"
+              name="checkboxEnableInput"
+              class="switch"
+            />
+            <label for="checkboxEnableInput" style="margin-top: 0"></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-container">
+        <div class="grid-main" id="checkboxDomainLabel">
+          Enable autocomplete on:
+        </div>
+
+        <div class="grid-sidebar">
+          <div class="field">
+            <input
+              id="checkboxDomainInput"
+              type="checkbox"
+              name="checkboxDomainInput"
+              class="switch"
+            />
+            <label for="checkboxDomainInput" style="margin-top: 0"> </label>
+          </div>
+        </div>
+      </div>
+
+      <hr />
+
+      <div class="grid-container">
+        <div class="grid-left">I write in:</div>
+
+        <div class="grid-right">
+          <div class="select">
+            <select id="languageSelect"></select>
+          </div>
+        </div>
+      </div>
+      <hr />
+
+      <div class="grid-container">
+        <div class="grid-center has-text-centered">
+          <a
+            class="button is-primary is-outlined"
+            id="runOptions"
+            target="_blank"
+            rel="nofollow noopener"
+            >Options</a
+          >
+        </div>
+      </div>
+
+      <hr />
+
+      <div class="has-text-centered">
+        <a href="https://www.buymeacoffee.com/FluentTyper" target="_blank"
+          ><img
+            src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png"
+            alt="Buy Me A Coffee"
+            style="height: 60px !important; width: 217px !important"
+        /></a>
+      </div>
+    </div>
+  </body>
+</html>

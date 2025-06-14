@@ -1,26 +1,36 @@
 import js from "@eslint/js";
-import eslintPluginPrettierRecommended from "eslint-plugin-prettier/recommended";
+import globals from "globals";
+import tseslint from "typescript-eslint";
+import { defineConfig } from "eslint/config";
 
-export default [
+export default defineConfig([
   {
-    files: ["**/*.js"],
-    ...js.configs.recommended,
+    files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
+    plugins: { js },
+    extends: ["js/recommended"],
+  },
+  {
+    files: ["**/*.{js,mjs,cjs,ts,mts,cts}"],
     languageOptions: {
-      sourceType: "module",
-    },
-    rules: {
-      semi: "error",
-      "no-unused-vars": "error",
-      "no-var": 1,
-      "prefer-const": 1,
-      eqeqeq: 1,
-      "no-extra-bind": 1,
-      "no-implicit-coercion": 1,
-      strict: 1,
+      globals: {
+        ...globals.browser,
+        ...globals.webextensions,
+        ...globals.jest,
+      },
     },
   },
   {
-    ignores: ["**/src/third_party/", "**/scripts/"],
+    ignores: [
+      "**/build/",
+      "**/public/third_party/",
+      "**/src/third_party/",
+      "**/scripts/",
+    ],
   },
-  eslintPluginPrettierRecommended,
-];
+  tseslint.configs.recommended,
+  {
+    rules: {
+      "@typescript-eslint/no-explicit-any": "warn",
+    },
+  },
+]);
