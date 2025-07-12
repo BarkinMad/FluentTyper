@@ -9,6 +9,7 @@ export interface SetConfigContext {
   revertOnBackspace: boolean;
   enabled: boolean;
   displayLangHeader: boolean;
+  inlineAutocomplete: boolean;
 }
 
 // Context for CMD_BACKGROUND_PAGE_PREDICT_REQ

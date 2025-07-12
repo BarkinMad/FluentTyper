@@ -38,6 +38,7 @@ export const KEY_LANGUAGE = "language";
 export const KEY_FALLBACK_LANGUAGE = "fallbackLanguage";
 export const KEY_DOMAIN_LIST_MODE = "domainListMode";
 export const KEY_DISPLAY_LANG_HEADER = "displayLangHeader";
+export const KEY_INLINE_AUTOCOMPLETE = "inlineAutocomplete";
 export const KEY_ENABLED = "enabled";
 
 // Popup Commands

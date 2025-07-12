@@ -27,6 +27,7 @@ import {
   KEY_TIME_FORMAT,
   KEY_DATE_FORMAT,
   KEY_USER_DICTIONARY_LIST,
+  KEY_INLINE_AUTOCOMPLETE,
 } from "../shared/constants";
 import { getDomain, isEnabledForDomain, checkLastError } from "../shared/utils";
 import { getErrorMessage } from "../shared/error";
@@ -130,6 +131,7 @@ class BackgroundServiceWorker {
       minWordLengthToPredict,
       revertOnBackspace,
       displayLangHeader,
+      inlineAutocomplete,
     ] = await Promise.all([
       this.settingsManager.get(KEY_ENABLED),
       this.settingsManager.get(KEY_AUTOCOMPLETE),
@@ -139,6 +141,7 @@ class BackgroundServiceWorker {
       this.settingsManager.get(KEY_MIN_WORD_LENGTH_TO_PREDICT),
       this.settingsManager.get(KEY_REVERT_ON_BACKSPACE),
       this.settingsManager.get(KEY_DISPLAY_LANG_HEADER),
+      this.settingsManager.get(KEY_INLINE_AUTOCOMPLETE),
     ]);
     const message: ConfigMessage = {
       command: CMD_BACKGROUND_PAGE_SET_CONFIG,
@@ -152,6 +155,7 @@ class BackgroundServiceWorker {
         minWordLengthToPredict: minWordLengthToPredict as number,
         revertOnBackspace: revertOnBackspace as boolean,
         displayLangHeader: displayLangHeader as boolean,
+        inlineAutocomplete: inlineAutocomplete as boolean,
       },
     };
     return message;
