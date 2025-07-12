@@ -11,6 +11,7 @@ import {
   KEY_AUTO_CAPITALIZE,
   KEY_SELECT_BY_DIGIT,
   KEY_REVERT_ON_BACKSPACE,
+  KEY_INLINE_AUTOCOMPLETE,
   KEY_LANGUAGE,
   KEY_FALLBACK_LANGUAGE,
   KEY_MIN_WORD_LENGTH_TO_PREDICT,
@@ -123,6 +124,14 @@ const manifest = {
       name: KEY_REVERT_ON_BACKSPACE,
       type: "checkbox",
       label: i18n.get("Enable Smart Backspace") + ":&nbsp;<small>" + i18n.get("When enabled, Backspace will undo the last auto-completion. When disabled, it deletes one character at a time.") + "</small>",
+      default: false,
+    },
+    {
+      tab: i18n.get("Autocomplete"),
+      group: i18n.get("Behavior After Completion"),
+      name: KEY_INLINE_AUTOCOMPLETE,
+      type: "checkbox",
+      label: i18n.get("Show inline suggestion instead of popup"),
       default: false,
     },
 

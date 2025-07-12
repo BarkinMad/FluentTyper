@@ -21,6 +21,8 @@ interface TributeEntry {
   // Store handler references for proper removal
   tributeReplacedHandlerRef?: EventListenerOrEventListenerObject;
   elementKeyDownHandlerRef?: EventListenerOrEventListenerObject;
+  inlineOriginalValue?: string;
+  inlineOriginalSelection?: number | null;
 }
 
 export class TributeManager {
@@ -39,6 +41,12 @@ export class TributeManager {
   private selectByDigit: boolean;
   private revertOnBackspace: boolean;
   private displayLangHeader: boolean;
+  private inlineAutocomplete: boolean;
+  private inlineSuggestions: string[] = [];
+  private inlineIndex: number = 0;
+  private inlineOriginalValue: string = "";
+  private inlineOriginalSelection: number | null = null;
+  private inlineActiveId: number | null = null;
   private reTriggerTributeOnReplaceEvent: boolean = false;
   private activeHelperArrId: number | null = null;
 
@@ -55,6 +63,7 @@ export class TributeManager {
     selectByDigit,
     revertOnBackspace,
     displayLangHeader,
+    inlineAutocomplete,
     // Callbacks to FluentTyper
     getPrediction,
   }: {
@@ -67,6 +76,7 @@ export class TributeManager {
     selectByDigit: boolean;
     revertOnBackspace: boolean;
     displayLangHeader: boolean;
+    inlineAutocomplete: boolean;
     // eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
     getPrediction: Function;
   }) {
@@ -83,6 +93,7 @@ export class TributeManager {
     this.selectByDigit = selectByDigit;
     this.revertOnBackspace = revertOnBackspace;
     this.displayLangHeader = displayLangHeader;
+    this.inlineAutocomplete = inlineAutocomplete;
     this.getPrediction = getPrediction; // callback to main class
     this.activeHelperArrId = null;
     console.info(
@@ -99,6 +110,7 @@ export class TributeManager {
         selectByDigit,
         revertOnBackspace,
         displayLangHeader,
+        inlineAutocomplete,
       },
     );
   }
@@ -173,6 +185,14 @@ export class TributeManager {
 
       currentEntry.done = done;
       currentEntry.requestId += 1;
+      const elem = currentEntry.elem as HTMLElement;
+      if (elem instanceof HTMLInputElement || elem instanceof HTMLTextAreaElement) {
+        currentEntry.inlineOriginalValue = elem.value;
+        currentEntry.inlineOriginalSelection = elem.selectionStart;
+      } else {
+        currentEntry.inlineOriginalValue = elem.textContent || "";
+        currentEntry.inlineOriginalSelection = this.getCaretOffset(elem);
+      }
       this.activeHelperArrId = tributeId;
 
       console.info(
@@ -247,7 +267,7 @@ export class TributeManager {
       { leading: false, trailing: true },
     );
     const boundElementKeyDownHandler = debounce(
-      this.elementKeyDownEventHandler.bind(this, tributeId),
+      (event: KeyboardEvent) => this.elementKeyDownEventHandler(tributeId, event),
       32,
     );
     // @ts-expect-error ignore Tribute errors
@@ -296,7 +316,18 @@ export class TributeManager {
           header,
         },
       );
-      tributeEntry.done(keyValPairs, context.forceReplace, header);
+      if (this.inlineAutocomplete) {
+        this.inlineSuggestions = context.predictions;
+        this.inlineIndex = 0;
+        this.inlineActiveId = context.tributeId;
+        this.inlineOriginalValue =
+          tributeEntry.inlineOriginalValue ?? (tributeEntry.elem as HTMLInputElement).value;
+        this.inlineOriginalSelection =
+          tributeEntry.inlineOriginalSelection ?? null;
+        this.applyInlineSuggestion();
+      } else {
+        tributeEntry.done(keyValPairs, context.forceReplace, header);
+      }
     } else {
       console.warn(
         "[%s:%s:%s] fulfillPrediction: No matching tributeEntry or requestId mismatch",
@@ -308,10 +339,104 @@ export class TributeManager {
     }
   }
 
+  private clearInlineSuggestion() {
+    this.inlineSuggestions = [];
+    this.inlineIndex = 0;
+    this.inlineActiveId = null;
+  }
+
+  private getCaretOffset(elem: HTMLElement): number {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      return (elem.textContent || "").length;
+    }
+    const range = selection.getRangeAt(0);
+    if (!elem.contains(range.startContainer)) {
+      return (elem.textContent || "").length;
+    }
+    const preRange = range.cloneRange();
+    preRange.selectNodeContents(elem);
+    preRange.setEnd(range.startContainer, range.startOffset);
+    return preRange.toString().length;
+  }
+
+  private setCaretRange(elem: HTMLElement, start: number, end: number) {
+    const selection = window.getSelection();
+    if (!selection) return;
+    const range = document.createRange();
+    if (!elem.firstChild) {
+      elem.appendChild(document.createTextNode(""));
+    }
+    const node = elem.firstChild as Text;
+    range.setStart(node, Math.min(start, node.length));
+    range.setEnd(node, Math.min(end, node.length));
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
+  private applyInlineSuggestion() {
+    if (this.inlineActiveId === null) return;
+    const entry = this.tributeArr[this.inlineActiveId];
+    if (!entry) return;
+    const elem = entry.elem as HTMLElement;
+    const prefix = this.inlineOriginalValue.slice(0, this.inlineOriginalSelection ?? 0);
+    const suffix = this.inlineOriginalValue.slice(this.inlineOriginalSelection ?? 0);
+    const suggestion = this.inlineSuggestions[this.inlineIndex] || "";
+    const newText = prefix + suggestion + suffix;
+    if (elem instanceof HTMLInputElement || elem instanceof HTMLTextAreaElement) {
+      elem.value = newText;
+      const start = prefix.length;
+      elem.setSelectionRange(start, start + suggestion.length);
+    } else {
+      elem.textContent = newText;
+      this.setCaretRange(elem, prefix.length, prefix.length + suggestion.length);
+    }
+  }
+
+  private acceptInlineSuggestion() {
+    if (this.inlineActiveId === null) return;
+    const entry = this.tributeArr[this.inlineActiveId];
+    if (!entry) return;
+    const elem = entry.elem as HTMLElement;
+    const prefix = this.inlineOriginalValue.slice(0, this.inlineOriginalSelection ?? 0);
+    const suggestion = this.inlineSuggestions[this.inlineIndex] || "";
+    const suffix = this.inlineOriginalValue.slice(this.inlineOriginalSelection ?? 0);
+    const newText = prefix + suggestion + suffix;
+    if (elem instanceof HTMLInputElement || elem instanceof HTMLTextAreaElement) {
+      elem.value = newText;
+      const caret = (prefix + suggestion).length;
+      elem.setSelectionRange(caret, caret);
+    } else {
+      elem.textContent = newText;
+      this.setCaretRange(elem, (prefix + suggestion).length, (prefix + suggestion).length);
+    }
+    this.clearInlineSuggestion();
+  }
+
+  private cancelInlineSuggestion() {
+    if (this.inlineActiveId === null) return;
+    const entry = this.tributeArr[this.inlineActiveId];
+    if (!entry) return;
+    const elem = entry.elem as HTMLElement;
+    if (elem instanceof HTMLInputElement || elem instanceof HTMLTextAreaElement) {
+      elem.value = this.inlineOriginalValue;
+      const caret = this.inlineOriginalSelection ?? this.inlineOriginalValue.length;
+      elem.setSelectionRange(caret, caret);
+    } else {
+      elem.textContent = this.inlineOriginalValue;
+      const caret = this.inlineOriginalSelection ?? this.inlineOriginalValue.length;
+      this.setCaretRange(elem, caret, caret);
+    }
+    this.clearInlineSuggestion();
+  }
+
   detachHelper(tributeId: number) {
     const entry = this.tributeArr[tributeId];
     if (!entry) return;
     const elem = entry.elem;
+    if (this.inlineActiveId === tributeId) {
+      this.clearInlineSuggestion();
+    }
     entry.tribute.detach(elem);
     if (entry.tributeReplacedHandlerRef) {
       elem.removeEventListener(
@@ -330,6 +455,7 @@ export class TributeManager {
       this.detachHelper(Number(key));
     }
     this.tributeArr = {};
+    this.clearInlineSuggestion();
   }
 
   isHelperAttached(elem: Element) {
@@ -479,8 +605,29 @@ export class TributeManager {
     }
   }
 
-  elementKeyDownEventHandler(helperArrId: number) {
+  elementKeyDownEventHandler(helperArrId: number, event: KeyboardEvent) {
     this.activeHelperArrId = helperArrId;
+    if (this.inlineAutocomplete && this.inlineActiveId === helperArrId && this.inlineSuggestions.length > 0) {
+      if (event.key === "Tab") {
+        event.preventDefault();
+        this.acceptInlineSuggestion();
+      } else if (event.key === "Escape") {
+        event.preventDefault();
+        this.cancelInlineSuggestion();
+      } else if (event.key === "ArrowRight") {
+        event.preventDefault();
+        this.inlineIndex = (this.inlineIndex + 1) % this.inlineSuggestions.length;
+        this.applyInlineSuggestion();
+      } else if (event.key === "ArrowLeft") {
+        event.preventDefault();
+        this.inlineIndex = (this.inlineIndex - 1 + this.inlineSuggestions.length) % this.inlineSuggestions.length;
+        this.applyInlineSuggestion();
+      } else if (event.key === "Backspace") {
+        this.cancelInlineSuggestion();
+      } else if (event.key.length === 1) {
+        this.clearInlineSuggestion();
+      }
+    }
   }
 
   updateLangConfig(lang: string) {

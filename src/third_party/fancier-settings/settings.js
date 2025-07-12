@@ -19,6 +19,7 @@ import {
   KEY_TIME_FORMAT,
   KEY_DATE_FORMAT,
   KEY_REVERT_ON_BACKSPACE,
+  KEY_INLINE_AUTOCOMPLETE,
   KEY_TEXT_EXPANSIONS,
   KEY_USER_DICTIONARY_LIST,
   KEY_DOMAIN_LIST_MODE,
@@ -217,7 +218,8 @@ window.addEventListener("DOMContentLoaded", function () {
         KEY_REVERT_ON_BACKSPACE,
         KEY_TEXT_EXPANSIONS,
         KEY_USER_DICTIONARY_LIST,
-        KEY_DISPLAY_LANG_HEADER
+        KEY_DISPLAY_LANG_HEADER,
+        KEY_INLINE_AUTOCOMPLETE
       ].forEach((element) => {
         settings.manifest[element].addEvent("action", function () {
           optionsPageConfigChange();

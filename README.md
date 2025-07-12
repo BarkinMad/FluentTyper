@@ -27,6 +27,7 @@ FluentTyper is a writing assistant with features such as a spell checker, text e
 As you start typing, FluentTyper will display a pop-up with a list of suggested words, similar to your phone keyboard.
 You can use the arrow keys (↑, ↓) to navigate the list of suggested words, and then press Tab to confirm your selection.
 To hide the list of suggested words, you can either press the Escape key or continue typing.
+Alternatively, FluentTyper can display only the first suggestion inline, similar to Gmail. Enable "Show inline suggestion instead of popup" in the extension settings to try this mode. Use `Tab` to accept the suggestion or `Escape` to dismiss it.
 
 Supported languages:
 - English
