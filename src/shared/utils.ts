@@ -151,17 +151,17 @@ export async function blockUnBlockDomain(
  * @param wait Time to wait before calling the function
  * @param options Options object with leading and trailing options
  */
-export function debounce(
-  func: (...args: undefined[]) => void,
+export function debounce<T extends (...args: never[]) => void>(
+  func: T,
   wait: number,
   options: { leading?: boolean; trailing?: boolean } = {
     leading: true,
     trailing: true,
   },
-): (...args: undefined[]) => void {
+): T {
   let timer: ReturnType<typeof setTimeout> | null = null;
 
-  return (...args: undefined[]) => {
+  return ((...args: Parameters<T>) => {
     const timerExpired = (callFunc: boolean) => {
       timer = null;
       if (callFunc) func(...args);
@@ -172,7 +172,7 @@ export function debounce(
     if (timer) clearTimeout(timer);
     timer = setTimeout(timeoutFn, wait);
     if (callNow) func(...args);
-  };
+  }) as T;
 }
 
 /**

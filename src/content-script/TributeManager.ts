@@ -13,7 +13,7 @@ interface TributeEntry {
   tribute: Tribute;
   elem: Element;
   done?: (
-    results: any[],
+    results: unknown[],
     forceReplace: ForceReplaceType | null,
     menuHeader?: string,
   ) => void;
@@ -173,7 +173,7 @@ export class TributeManager {
     const tribueValuesFn = (
       _trigger: string, // text typed so far - not used directly here, context.text is used
       done: (
-        results: any[],
+        results: unknown[],
         forceReplace: ForceReplaceType | null,
         menuHeader?: string,
       ) => void,
@@ -224,7 +224,7 @@ export class TributeManager {
       containerClass: "tribute-container",
       itemClass: "",
       // @ts-expect-error ignore Tribute errors
-      selectTemplate: (item: any) => item.original.value,
+      selectTemplate: (item: unknown) => (item as never).original.value,
       // @ts-expect-error ignore Tribute errors
       menuItemTemplate: (item) => item.string,
       noMatchTemplate: undefined,
@@ -267,18 +267,15 @@ export class TributeManager {
       { leading: false, trailing: true },
     );
     const boundElementKeyDownHandler = debounce(
-      (event: KeyboardEvent) => this.elementKeyDownEventHandler(tributeId, event),
+      (event: Event) => this.elementKeyDownEventHandler(tributeId, event as KeyboardEvent),
       32,
+      { leading: false, trailing: true },
     );
-    // @ts-expect-error ignore Tribute errors
     this.tributeArr[tributeId].tributeReplacedHandlerRef =
       boundTributeReplacedHandler;
-    // @ts-expect-error ignore Tribute errors
     this.tributeArr[tributeId].elementKeyDownHandlerRef =
       boundElementKeyDownHandler;
-    // @ts-expect-error ignore Tribute errors
     elem.addEventListener("tribute-replaced", boundTributeReplacedHandler);
-    // @ts-expect-error ignore Tribute errors
     elem.addEventListener("keydown", boundElementKeyDownHandler);
   }
 
